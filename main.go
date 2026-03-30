@@ -29,6 +29,9 @@ func main() {
 
 
 func ScraperHandler(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Yo writing this just to insure the connection is estasblished"))
+	w.Write([]byte("\n"))
+
 	game := r.FormValue("name")
 	game = url.QueryEscape(game)
 
@@ -36,7 +39,7 @@ func ScraperHandler(w http.ResponseWriter, r *http.Request) {
 
 	title, releaseDate, imageUrl := ExtractGameDetails(game)
 
-	fmt.Println(title, releaseDate, imageUrl)
+	// fmt.Println(title, releaseDate, imageUrl)
 
 	w.Write([]byte("Title: " + title + "\n" + "releaseDate: " + releaseDate + "\n" + "Image URL: " + imageUrl + "\n"))
 }
@@ -58,20 +61,28 @@ func ExtractGameDetails(gameName string )  (string, string, string) {
 	rawHtml := string(resBytes)
 	if rawHtml != "" {
 		fmt.Println("http GET request returned response...")
+	}else {
+		fmt.Println("http GET request did not return response")
 	}
+
+	fmt.Printf("\n")
+	// fmt.Println(rawHtml)
 
 	html, err := goquery.NewDocumentFromReader(strings.NewReader(rawHtml))
 	if err != nil {
 		panic(err)
 	}
 
-	title := html.Find(`p.c-search-item__title`).First().Text()
-	releaseDate := html.Find(`li.c-search-product-meta__release-date`).First().Text()
-	imageUrl := html.Find(`div.c-search-item__image img`).AttrOr("src", "")
+	// title := html.Find(`p.c-search-item__title`).First().Text()
+	// title := html.Find(`title`).First().Text()
+	title := html.Find(`div[class="c-search-item__content"]`).Children().First().Text()
+	releaseDate := html.Find(`li[class="c-search-product-meta__list-item c-search-product-meta__release-date"]`).First().Text()
+	// imageUrl := html.Find(`img[class="block w-full h-full object-cover opacity-100"]`).AttrOr("src", "")
+	imageUrl := html.Find(`source`).AttrOr("srcset", "")
 
 
 	// text := html.Find(`div[class="c-search-product-meta c-search-product-meta--search-page"] ul[class="c-search-product-meta__list"] span`).First().Text()
-	fmt.Printf("title: %s, release-date: %s, image-url: %s", title, releaseDate, imageUrl)
+	// fmt.Printf("title: %s, release-date: %s, image-url: %s", title, releaseDate, imageUrl)
 
 	// fmt.Printf("Game Name: %s and Game Data: %s\n", gameName, gameData)
 
